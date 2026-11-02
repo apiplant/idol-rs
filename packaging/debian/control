@@ -1,0 +1,19 @@
+Package: idol-rs
+Version: @VERSION@
+Section: graphics
+Priority: optional
+Architecture: @ARCH@
+Depends: libcuda1
+Maintainer: apiplant <releases@apiplant.com>
+Installed-Size: @INSTALLED_SIZE@
+Homepage: https://github.com/apiplant/idol-rs
+Description: one image to a 3D Gaussian splat on NVIDIA GPUs (Rust, CUDA)
+ idol turns one picture of an object into a 3D Gaussian splat (a
+ standard 3DGS .ply): it removes the background, frames the object and
+ generates up to a million Gaussians, including the sides the picture
+ never showed. `idol serve` adds an HTTP API and a built-in web UI with
+ a 3D viewer. Needs an NVIDIA GPU (Ampere or newer); the model files are
+ downloaded on first use. It links the CUDA 13 runtime (libcudart,
+ libcublas, libnvrtc), which is not packaged by Debian or Ubuntu: install
+ it from NVIDIA's CUDA repository. libcuda1 (installed by the NVIDIA
+ driver package) satisfies the driver link only.

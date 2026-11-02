@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>idol-rs — one image to a 3D Gaussian splat, in Rust</title>
+    <meta name="description" content="One picture of an object in, a 3D Gaussian splat out. A Rust port of Idol on candle: CLI, HTTP API and a web UI with a 3D viewer, from one binary. CUDA or Apple Silicon, no Python at run time." />
+    <meta name="keywords" content="idol, 3D Gaussian splatting, image to 3D, single image 3D, 3DGS, ply, Rust, candle, CUDA, Metal, local AI" />
+    <meta name="robots" content="index, follow, max-image-preview:large" />
+    <link rel="canonical" href="https://idol-rs.apiplant.com/" />
+    <meta property="og:site_name" content="idol-rs" />
+    <meta property="og:title" content="idol-rs — one image to a 3D Gaussian splat, in Rust" />
+    <meta property="og:description" content="One picture of an object in, a 3D Gaussian splat out. A Rust port of Idol on candle: CLI, HTTP API and a web UI with a 3D viewer, from one binary. CUDA or Apple Silicon, no Python at run time." />
+    <meta property="og:url" content="https://idol-rs.apiplant.com/" />
+    <meta property="og:type" content="website" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta property="og:image" content="https://idol-rs.apiplant.com/og.jpg" />
+    <meta name="twitter:image" content="https://idol-rs.apiplant.com/og.jpg" />
+    <meta name="twitter:title" content="idol-rs — one image to a 3D Gaussian splat, in Rust" />
+    <meta name="twitter:description" content="One picture of an object in, a 3D Gaussian splat out. A Rust port of Idol on candle: CLI, HTTP API and a web UI with a 3D viewer, from one binary. CUDA or Apple Silicon, no Python at run time." />
+    <meta name="theme-color" content="#0b0c12" media="(prefers-color-scheme: dark)" />
+    <meta name="theme-color" content="#f6f5fb" media="(prefers-color-scheme: light)" />
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "SoftwareApplication",
+        "name": "idol-rs",
+        "description": "One picture of an object in, a 3D Gaussian splat out. A Rust port of Idol on candle: CLI, HTTP API and a web UI with a 3D viewer, from one binary. CUDA or Apple Silicon, no Python at run time.",
+        "applicationCategory": "DeveloperApplication",
+        "operatingSystem": "Linux, macOS",
+        "url": "https://idol-rs.apiplant.com/",
+        "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" }
+      }
+    </script>
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%2314121f'/%3E%3Cpath d='M16 5l9.5 5.5v11L16 27l-9.5-5.5v-11z' stroke='%23b9a8fb' stroke-width='2.2' fill='none' stroke-linejoin='round'/%3E%3C/svg%3E"
+    />
+    <script>
+      // Set the theme before first paint so the page never flashes the wrong one.
+      (function () {
+        try {
+          var stored = localStorage.getItem("idol-rs-theme");
+          var light =
+            stored === "light" ||
+            (!stored && window.matchMedia("(prefers-color-scheme: light)").matches);
+          if (light) document.documentElement.classList.add("light");
+          document.documentElement.style.colorScheme = light ? "light" : "dark";
+        } catch (_) {
+          /* private mode: dark is the default anyway */
+        }
+      })();
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/index.tsx"></script>
+  </body>
+</html>

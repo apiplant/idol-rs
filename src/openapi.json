@@ -1,0 +1,613 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "idol serve",
+    "version": "VERSION",
+    "description": "Idol: a single image to a 3D Gaussian splat over HTTP. The GPU engine is single-tenant: requests queue and run one at a time.\n\nThe result is a standard 3D Gaussian Splatting `.ply` (y-up, inside [-0.5, 0.5]\u00b3) that opens in any splat viewer, plus the 1024\u00d71024 image the model saw and the predicted input camera.",
+    "license": {
+      "name": "Apache-2.0"
+    }
+  },
+  "paths": {
+    "/v1/generate": {
+      "post": {
+        "summary": "Generate a Gaussian splat (waits for the result)",
+        "operationId": "generate",
+        "parameters": [
+          {
+            "name": "mode",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "synthetic",
+                "real"
+              ],
+              "default": "synthetic",
+              "description": "`synthetic`: renders and generated images of one object (crop 1.2); `real`: photographs (crop 1.7)"
+            }
+          },
+          {
+            "name": "crop_margin",
+            "in": "query",
+            "schema": {
+              "type": "number",
+              "description": "overrides the mode's crop: square side = object bounding box \u00d7 this"
+            }
+          },
+          {
+            "name": "seed",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "description": "same seed, same object (random when omitted)"
+            }
+          },
+          {
+            "name": "steps",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 1000,
+              "default": 50
+            }
+          },
+          {
+            "name": "cfg_strength",
+            "in": "query",
+            "schema": {
+              "type": "number",
+              "default": 3.0,
+              "description": "classifier-free guidance strength"
+            }
+          },
+          {
+            "name": "rescale_t",
+            "in": "query",
+            "schema": {
+              "type": "number",
+              "default": 3.0,
+              "description": "time-step shift towards high noise"
+            }
+          },
+          {
+            "name": "num_gaussians",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 32768,
+              "maximum": 1048576,
+              "default": 262144,
+              "description": "rounded down to a multiple of 32"
+            }
+          },
+          {
+            "name": "flip",
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GenerateRequest"
+              }
+            },
+            "image/*": {
+              "schema": {
+                "type": "string",
+                "format": "binary"
+              },
+              "description": "the picture itself; the other fields are query parameters"
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The `.ply`. `x-idol-job` names the job (its files stay available under /v1/jobs/result until deleted); `x-idol-camera` is the predicted camera as JSON.",
+            "headers": {
+              "x-idol-job": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "x-idol-camera": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/octet-stream": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request or the generation failed",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/jobs": {
+      "post": {
+        "summary": "Queue a generation and return at once",
+        "operationId": "createJob",
+        "parameters": [
+          {
+            "name": "mode",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "synthetic",
+                "real"
+              ],
+              "default": "synthetic",
+              "description": "`synthetic`: renders and generated images of one object (crop 1.2); `real`: photographs (crop 1.7)"
+            }
+          },
+          {
+            "name": "crop_margin",
+            "in": "query",
+            "schema": {
+              "type": "number",
+              "description": "overrides the mode's crop: square side = object bounding box \u00d7 this"
+            }
+          },
+          {
+            "name": "seed",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "description": "same seed, same object (random when omitted)"
+            }
+          },
+          {
+            "name": "steps",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 1000,
+              "default": 50
+            }
+          },
+          {
+            "name": "cfg_strength",
+            "in": "query",
+            "schema": {
+              "type": "number",
+              "default": 3.0,
+              "description": "classifier-free guidance strength"
+            }
+          },
+          {
+            "name": "rescale_t",
+            "in": "query",
+            "schema": {
+              "type": "number",
+              "default": 3.0,
+              "description": "time-step shift towards high noise"
+            }
+          },
+          {
+            "name": "num_gaussians",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 32768,
+              "maximum": 1048576,
+              "default": 262144,
+              "description": "rounded down to a multiple of 32"
+            }
+          },
+          {
+            "name": "flip",
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GenerateRequest"
+              }
+            },
+            "image/*": {
+              "schema": {
+                "type": "string",
+                "format": "binary"
+              },
+              "description": "the picture itself; the other fields are query parameters"
+            }
+          }
+        },
+        "responses": {
+          "202": {
+            "description": "Queued",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "summary": "State of a job",
+        "operationId": "jobState",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "example": "idol-serve-4242-0"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "`state` is queued, running, done or failed; a done job also carries `meta` and `camera`",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Job"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Unknown job",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete a finished job's files",
+        "operationId": "deleteJob",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "example": "idol-serve-4242-0"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "deleted",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/jobs/result": {
+      "get": {
+        "summary": "A finished job's files",
+        "operationId": "jobResult",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "example": "idol-serve-4242-0"
+            }
+          },
+          {
+            "name": "file",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "ply",
+                "input",
+                "camera"
+              ],
+              "default": "ply"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The file",
+            "content": {
+              "application/octet-stream": {},
+              "image/png": {},
+              "application/json": {}
+            }
+          },
+          "404": {
+            "description": "No result for this job",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/status": {
+      "get": {
+        "summary": "What the engine is doing right now",
+        "operationId": "status",
+        "responses": {
+          "200": {
+            "description": "Stage and step, for progress bars",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Status"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/info": {
+      "get": {
+        "summary": "Version, device, defaults and limits",
+        "operationId": "info",
+        "responses": {
+          "200": {
+            "description": "Server info",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/cancel": {
+      "post": {
+        "summary": "Cancel the running job and everything queued",
+        "operationId": "cancel",
+        "responses": {
+          "200": {
+            "description": "cancelled",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/health": {
+      "get": {
+        "summary": "Liveness",
+        "operationId": "health",
+        "responses": {
+          "200": {
+            "description": "ok",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "GenerateRequest": {
+        "type": "object",
+        "required": [
+          "image"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "image": {
+            "type": "string",
+            "description": "base64 file contents of the picture (png, jpeg, webp, bmp); a `data:` URL prefix is accepted"
+          },
+          "mode": {
+            "type": "string",
+            "enum": [
+              "synthetic",
+              "real"
+            ],
+            "default": "synthetic",
+            "description": "`synthetic`: renders and generated images of one object (crop 1.2); `real`: photographs (crop 1.7)"
+          },
+          "crop_margin": {
+            "type": "number",
+            "description": "overrides the mode's crop: square side = object bounding box \u00d7 this"
+          },
+          "seed": {
+            "type": "integer",
+            "description": "same seed, same object (random when omitted)"
+          },
+          "steps": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 1000,
+            "default": 50
+          },
+          "cfg_strength": {
+            "type": "number",
+            "default": 3.0,
+            "description": "classifier-free guidance strength"
+          },
+          "rescale_t": {
+            "type": "number",
+            "default": 3.0,
+            "description": "time-step shift towards high noise"
+          },
+          "num_gaussians": {
+            "type": "integer",
+            "minimum": 32768,
+            "maximum": 1048576,
+            "default": 262144,
+            "description": "rounded down to a multiple of 32"
+          },
+          "flip": {
+            "type": "boolean",
+            "description": "turn the result over: a half turn about the input camera's view axis, for objects the model returns upside down (default: the server's --flip)"
+          }
+        }
+      },
+      "Job": {
+        "type": "object",
+        "properties": {
+          "state": {
+            "type": "string",
+            "enum": [
+              "queued",
+              "running",
+              "done",
+              "failed"
+            ]
+          },
+          "error": {
+            "type": "string"
+          },
+          "meta": {
+            "type": "object",
+            "properties": {
+              "gaussians": {
+                "type": "integer"
+              },
+              "seconds": {
+                "type": "number"
+              },
+              "seed": {
+                "type": "integer"
+              },
+              "steps": {
+                "type": "integer"
+              }
+            }
+          },
+          "camera": {
+            "$ref": "#/components/schemas/Camera"
+          }
+        }
+      },
+      "Camera": {
+        "type": "object",
+        "properties": {
+          "yaw": {
+            "type": "number",
+            "description": "radians"
+          },
+          "pitch": {
+            "type": "number",
+            "description": "radians"
+          },
+          "radius": {
+            "type": "number"
+          },
+          "fov": {
+            "type": "number",
+            "description": "vertical field of view, degrees"
+          }
+        }
+      },
+      "Status": {
+        "type": "object",
+        "properties": {
+          "state": {
+            "type": "string",
+            "enum": [
+              "idle",
+              "starting",
+              "running"
+            ]
+          },
+          "queued": {
+            "type": "integer"
+          },
+          "stage": {
+            "type": "string",
+            "enum": [
+              "idle",
+              "preparing",
+              "encoding",
+              "sampling",
+              "placing",
+              "decoding",
+              "downloading"
+            ]
+          },
+          "done": {
+            "type": "integer"
+          },
+          "total": {
+            "type": "integer"
+          }
+        }
+      }
+    }
+  }
+}
